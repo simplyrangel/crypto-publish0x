@@ -1,0 +1,3 @@
+[submodule "crypto-api"]
+	path = crypto-api
+	url = https://github.com/simplyrangel/crypto-api
