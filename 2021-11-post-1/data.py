@@ -1,4 +1,11 @@
-"""Fetch and setup data used for this Publish0x post."""
+"""Fetch and setup data used for this Publish0x post.
+
+Evaluate Large Cap Coin portfolio performance from creation 
+(Sep. 19, 2021) through post publication weekend (Nov. 10, 2021).
+
+Submodule dependencies:
+    -   crypto-api @84b00c3
+"""
 import pandas as pd
 import numpy as np
 import pickle as pkl
