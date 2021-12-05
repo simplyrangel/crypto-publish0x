@@ -2,6 +2,14 @@
 .pyc
 **__pycache__/
 
+# ignore file extensions typically used
+# to save large datasets:
+*.hdf
+*.h5
+*.mat
+*.xlsx
+*.csv
+
 # Jupyter notebook background files:
 *checkpoint.ipynb
 
