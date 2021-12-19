@@ -28,7 +28,11 @@ img = imghelper(
 # -------------------------------------------------------
 # Load and process data.
 # -------------------------------------------------------
-mdf = pd.read_hdf("cmc-scrape-results.hdf")
+# I deferred completing this analysis by a few weeks, 
+# so I need to concat the scrape results to update:
+mdf1 = pd.read_hdf("cmc-scrape-results-top-1000.hdf")
+mdf2 = pd.read_hdf("cmc-scrape-results-top-1000-2021-12-05.hdf")
+mdf = pd.concat([mdf1,mdf2])
 
 # get current coin market cap rankings and remove 
 # stablecoins, wrapped coins, and memecoins:
@@ -41,6 +45,7 @@ ignore_coins = [
     "Neutrino USD",
     "Dai",
     "TrueUSD",
+    "Gemini Dollar",
     
     # Bitcoin, Ethereum derivatives:
     # and wrapped coins:
@@ -57,7 +62,7 @@ ignore_coins = [
     "Dogecoin",
     "Dogelon Mars",
     ]
-current_cmc = mdf.loc[idx["2021-11-28",:],:].reset_index(level=1)
+current_cmc = mdf.loc[idx["2021-12-05",:],:].reset_index(level=1)
 ignore_coins_id = current_cmc.index.isin(ignore_coins)
 current_cmc = current_cmc[~ignore_coins_id]
 
@@ -80,40 +85,6 @@ for col in rankings.columns:
         rows = data.week.tolist()
         entries = data.cmc_rank.values
     rankings.loc[rows,col] = entries
-    
-# save for visual inspection and later use:
-rankings.to_excel("rankings.xlsx")
-
-# -------------------------------------------------------
-# Consider known top gainers:
-# -------------------------------------------------------
-coins_of_interest = [
-    "Solana",
-    "Avalanche",
-    "Tezos",
-    "Terra",
-    "Decentraland",
-    "Curve DAO Token",
-    ]
-
-# plot coins of interest coin marketcap rankings 
-# through time:
-plt.figure()
-plt.title("Known gainers")
-for coin in coins_of_interest:
-    plt.plot(
-        rankings.index,
-        rankings[coin],
-        label=coin,
-        )
-plt.xlabel("week")
-plt.xticks(ticks=rankings.index[::4],rotation=45)
-plt.ylabel("market cap ranking")
-plt.legend()
-plt.grid()
-plt.tight_layout()
-img.savefig()
-plt.close()
 
 # -------------------------------------------------------
 # Look at coin ranking changes per week:
@@ -160,7 +131,6 @@ plt.grid()
 plt.tight_layout()
 img.savefig()
 plt.close()
-
 
 
 

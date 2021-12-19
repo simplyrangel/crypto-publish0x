@@ -40,14 +40,14 @@ pause_seconds=3
 frames = []
 for suni in sun2021:
     print("scraping %s..."%(suni.strftime("%Y-%m-%d")))
-    output = utils.scrape_cmc_historical(suni,300)
+    output = utils.scrape_cmc_historical(suni,2000)
     df = utils.process_json(output)
     frames.append(df)
     time.sleep(pause_seconds)
 
 # save:
 results = pd.concat(frames,keys=sun2021)
-results.to_hdf("2021-12-post-0/cmc-scrape-results.hdf","w",mode="w")
+results.to_hdf("cmc-scrape-results.hdf","w",mode="w")
 
 
 
