@@ -12,8 +12,19 @@ def set_rcparams():
         })
 
 # add user markings and URL's:
-def add_markings():
-    pass
+def add_markings(ax):
+    plt.text(
+        1.0,
+        0.0,
+        """publish0x.com/@simplyrangel
+github.com/simplyrangel""",
+        transform=ax.transAxes,
+        fontsize=10,
+        ha="right",
+        va="bottom",
+        color="gray",
+        alpha=0.5,
+        )
 
 # class to make saving figures easy:
 class imghelper():
