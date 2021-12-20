@@ -10,6 +10,13 @@
 *.xlsx
 *.csv
 
+# ignore images and pdf files:
+*.png
+*.jpeg
+*.pdf
+*.tif
+*.tiff
+
 # Jupyter notebook background files:
 *checkpoint.ipynb
 
@@ -24,3 +31,4 @@ bin/*
 
 # exceptions:
 !*.note
+
