@@ -34,15 +34,24 @@ coins_of_interest = coins_of_interest.sort_values(
     ascending=False,
     )
 
+# market cap ranks every first Sunday of the month:
+mcr_first_sunday = rankings[~rankings.index.to_period("m").duplicated()]
+
+# market cap rank changes per month:
+dmcr_per_month = mcr_first_sunday.diff()
+
+# market cap rank change percent per month:
+mcr_first_sunday_shift = mcr_first_sunday.copy()
+new_index = mcr_first_sunday.index.tolist()
+mcr_first_sunday_shift.index = new_index[1:] + ["dropme"]
+dmcr_per_month_p = dmcr_per_month / mcr_first_sunday_shift
+dmcr_per_month_p = dmcr_per_month_p.iloc[:-1]
+dmcr_per_month_p.index = pd.to_datetime(dmcr_per_month_p.index)
+
 # restrict rankings to 2021:
 rankings2021 = rankings.loc["2021-01-01":].copy()
-
-# calculate rank changes per month:
-dmc_per_month = rankings2021.resample("4W"
-    ).first(
-    ).fillna(value=np.nan
-    ).diff(
-    )
+dmcr_per_month = dmcr_per_month.loc["2021-01-01":].copy()
+dmcr_per_month_p = dmcr_per_month_p.loc["2021-01-01":].copy()
 
 # -------------------------------------------------------
 # Plot coin of interest ranks through 2021.
@@ -100,16 +109,16 @@ with PdfPages("bin/coin-of-interest-0.pdf") as pdf:
         plt.figure()
         plt.title(title_1)
         plt.scatter(
-            dmc_per_month.index,
-            dmc_per_month[coin],
+            dmcr_per_month.index,
+            dmcr_per_month[coin],
             label=label,
             color="blue",
             marker="v",
             s=100,
             )
         plt.plot(
-            dmc_per_month.index,
-            dmc_per_month[coin],
+            dmcr_per_month.index,
+            dmcr_per_month[coin],
             label="",
             color="blue",
             alpha=0.5,
@@ -123,9 +132,9 @@ with PdfPages("bin/coin-of-interest-0.pdf") as pdf:
         plt.grid()
         plt.xlabel("week")
         plt.ylabel("CMC rank change per month")
-        plt.xticks(ticks=dmc_per_month.index[::2],rotation=45,ha="right")
-        yt = dmc_per_month[coin].max()*1.5
-        yb = dmc_per_month[coin].min()*1.25
+        plt.xticks(ticks=dmcr_per_month.index,rotation=45,ha="right")
+        yt = dmcr_per_month[coin].max()*1.5
+        yb = dmcr_per_month[coin].min()*1.25
         plt.ylim([yb,yt])
         plt.tight_layout()
         pdf.savefig()
@@ -136,16 +145,16 @@ with PdfPages("bin/coin-of-interest-0.pdf") as pdf:
         plt.figure()
         plt.title(title_1)
         plt.scatter(
-            dmc_percent.index,
-            dmc_percent[coin],
+            dmcr_per_month_p.index,
+            dmcr_per_month_p[coin],
             label=label,
             color="blue",
             marker="v",
             s=100,
             )
         plt.plot(
-            dmc_percent.index,
-            dmc_percent[coin],
+            dmcr_per_month_p.index,
+            dmcr_per_month_p[coin],
             label="",
             color="blue",
             alpha=0.5,
@@ -158,13 +167,90 @@ with PdfPages("bin/coin-of-interest-0.pdf") as pdf:
         plt.legend(fontsize=8)
         plt.grid()
         plt.xlabel("week")
-        plt.ylabel("CMC rank change percent per month")
-        plt.xticks(ticks=dmc_percent.index[::2],rotation=45,ha="right")
-        yt = dmc_percent[coin].max()*1.5
-        yb = dmc_percent[coin].min()*1.25
+        plt.ylabel("CMC monthly rank change /\nmonth's starting rank")
+        plt.xticks(ticks=dmcr_per_month_p.index,rotation=45,ha="right")
+        yt = dmcr_per_month_p[coin].max()*1.5
+        yb = dmcr_per_month_p[coin].min()*1.25
         plt.ylim([yb,yt])
         plt.tight_layout()
         pdf.savefig()
         plt.close()
+
+# plot only percent changes with constant Y axis range:
+with PdfPages("bin/coin-of-interest-1.pdf") as pdf:
+    for coin in coins_of_interest.index:
+        title_1 = make_title_1(coins_of_interest,coin)
+        plt.figure()
+        plt.title(title_1)
+        plt.scatter(
+            dmcr_per_month_p.index,
+            dmcr_per_month_p[coin],
+            label=label,
+            color="blue",
+            marker="v",
+            s=100,
+            zorder=10,
+            )
+        plt.plot(
+            dmcr_per_month_p.index,
+            dmcr_per_month_p[coin],
+            label="",
+            color="blue",
+            alpha=0.5,
+            zorder=9,
+            )
+        plt.axhline(
+            0.0,
+            color="black",
+            label="no change",
+            )
+        for hline in [0.25,0.5]:
+            plt.axhline(
+                hline,
+                color="black",
+                linestyle="--",
+                linewidth=1,
+                label="",
+                )
+            plt.axhline(
+                -hline,
+                color="black",
+                linestyle="--",
+                linewidth=1,
+                label="",
+                )
+            plt.text(
+                dmcr_per_month_p.index[0],
+                hline,
+                "%d percent change"%(hline*100),
+                color="black",
+                ha="left",
+                va="bottom",
+                fontsize=8,
+                )
+            plt.text(
+                dmcr_per_month_p.index[0],
+                -hline,
+                "%d percent change"%(-hline*100),
+                color="black",
+                ha="left",
+                va="bottom",
+                fontsize=8,
+                )
+        plt.legend(fontsize=8)
+        plt.grid()
+        plt.xlabel("week")
+        plt.ylabel("CMC monthly rank change /\nmonth's starting rank")
+        plt.xticks(ticks=dmcr_per_month_p.index,rotation=45,ha="right")
+        plt.ylim([-1,1])
+        plt.tight_layout()
+        pdf.savefig()
+        plt.close()
+
+
+
+
+
+
 
 
