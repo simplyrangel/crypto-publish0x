@@ -12,7 +12,7 @@ setup_paths()
 # plot setup:
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from styleguide import set_rcparams, imghelper
+from styleguide import set_rcparams, add_markings, imghelper
 set_rcparams()
 
 # pandas index slices:
@@ -189,10 +189,11 @@ with PdfPages("bin/coin-of-interest-0.pdf") as pdf:
         plt.close()
 
 # plot only percent changes with constant Y axis range:
+img = imghelper("bin","results-percent-change")
 with PdfPages("bin/coin-of-interest-1.pdf") as pdf:
     for coin in coins_of_interest.index:
         title_1 = make_title_1(coins_of_interest,coin)
-        plt.figure()
+        fig, ax = plt.subplots()
         plt.title(title_1)
         
         # monthly percent change:
@@ -281,8 +282,11 @@ with PdfPages("bin/coin-of-interest-1.pdf") as pdf:
         plt.ylabel("CMC percent rank change")
         plt.xticks(ticks=dmcr_per_month_p.index,rotation=45,ha="right")
         plt.ylim([-1,1])
+        add_markings(ax)
         plt.tight_layout()
         pdf.savefig()
+        if coin in ["XYO","Terra","Solana"]:
+            img.savefig()
         plt.close()
 
 
