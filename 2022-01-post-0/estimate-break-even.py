@@ -11,7 +11,12 @@ https://forum.olympusdao.finance/d/77-oip-18-reward-rate-framework-and-reduction
 The potential rebase rate range will change when the total Ohm supply 
 exceeds 10 million. The date when the total Ohm supply exceeds 10 million
 was estimated by extrapolating a near-linear Ohm supply growth based on the
-last few months of total Ohm token supply. 
+last few months of total Ohm token supply. The Ohm supply per day was 
+manually taken from:
+
+https://dune.xyz/queries/285132
+
+and saved to a .csv file in bin/. 
 
 """
 import numpy as np
