@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
+from numpy.random import default_rng
 from datetime import datetime, timedelta
 
 # set local paths to enable imports:
@@ -80,6 +81,9 @@ new_epoch_start = ohm_supply_est[
 # [1e6,10e6] Ohm -> [0.1587, 0.3058] rebase percent
 # [10e6, 100e6] Ohm -> [0.1186,0.1587] rebase interest
 #
+# OIP-18 link:
+# https://forum.olympusdao.finance/d/77-oip-18-reward-rate-framework-and-reduction
+#
 # The discrete rebase interest rate will vary with every
 # rebase. Rebases occur every eight hours (3x per day). 
 # Let's assume uniform distributions across the rebase 
@@ -93,13 +97,91 @@ results_index = pd.date_range(
     freq="8h",
     periods=int(3*365),    
     )
-results = pd.DataFrame(
+results_oip18 = pd.DataFrame(
     np.nan,
-    columns=["rebase_interest"],
+    columns=["ohms","rebase_rate"],
     index=results_index,    
     )
 
-# generate random 
+# generate random rebase rates for the first epoch:
+e0_dates = results_oip18[results_oip18.index<=new_epoch_start].index
+e0_rebase_rate = default_rng().uniform(
+    low=0.1587e-2,
+    high=0.3058e-2,
+    size=len(e0_dates),    
+    )
+results_oip18.loc[e0_dates,"rebase_rate"] = e0_rebase_rate
+
+# generate random rebase reates for the next epoch:
+e1_dates = results_oip18[results_oip18.index>new_epoch_start].index
+e1_rebase_rate = default_rng().uniform(
+    low=0.1186e-2,
+    high=0.1587e-2,
+    size=len(e1_dates),    
+    )
+results_oip18.loc[e1_dates,"rebase_rate"] = e1_rebase_rate
+
+# assume we buy one Ohm today (2022-01-02) at the first 
+# rebase instance:
+results_oip18.iloc[0].loc["ohms"] = 1.0
+
+# simulate Ohm accumulating interest according to the
+# randomized rebase rates:
+for rebase_id in range(1, len(results_oip18.index)):
+    ohm0 = results_oip18.iloc[rebase_id-1].ohms
+    r = results_oip18.iloc[rebase_id].rebase_rate
+    results_oip18.iloc[rebase_id].loc["ohms"] = ohm0*(1.0+r)
+    
+# repeat the same analysis, with best-case max rebase
+# rate for both epochs:
+results_max_oip18 = pd.DataFrame(
+    np.nan,
+    columns=["ohms","rebase_rate"],
+    index=results_index,    
+    )
+results_max_oip18.iloc[0].loc["ohms"] = 1.0
+results_max_oip18.loc[e0_dates,"rebase_rate"] = 0.3058e-2
+results_max_oip18.loc[e1_dates,"rebase_rate"] = 0.1587e-2
+for rebase_id in range(1, len(results_max_oip18.index)):
+    ohm0 = results_max_oip18.iloc[rebase_id-1].ohms
+    r = results_max_oip18.iloc[rebase_id].rebase_rate
+    results_max_oip18.iloc[rebase_id].loc["ohms"] = ohm0*(1.0+r)
+
+# repeat the same analysis, with worst-case min rebase
+# rate for both epochs:
+results_min_oip18 = pd.DataFrame(
+    np.nan,
+    columns=["ohms","rebase_rate"],
+    index=results_index,    
+    )
+results_min_oip18.iloc[0].loc["ohms"] = 1.0
+results_min_oip18.loc[e0_dates,"rebase_rate"] = 0.1587e-2
+results_min_oip18.loc[e1_dates,"rebase_rate"] = 0.1186e-2
+for rebase_id in range(1, len(results_min_oip18.index)):
+    ohm0 = results_min_oip18.iloc[rebase_id-1].ohms
+    r = results_min_oip18.iloc[rebase_id].rebase_rate
+    results_min_oip18.iloc[rebase_id].loc["ohms"] = ohm0*(1.0+r)
+
+# -------------------------------------------------------
+# Calculate break even points at the end of 2022, or
+# start of 2023.
+# -------------------------------------------------------
+# price of 1 Ohm at 4:53pm CST 2022-01-02: 
+# about $350.0 USD
+ohm_usd_buy = 350.0 #USD 
+be_best = ohm_usd_buy / results_max_oip18.iloc[-1].ohms
+be_unif = ohm_usd_buy / results_oip18.iloc[-1].ohms
+be_worst = ohm_usd_buy / results_min_oip18.iloc[-1].ohms
+breakeven_df = pd.DataFrame(
+    [be_best,be_unif,be_worst],
+    columns=["Ohm USD value"],
+    index=[
+        "best-case break-even point",
+        "uniform r distr. break-even point",
+        "worst-case break-even point",
+        ]
+    ).round(3)
+breakeven_df.to_excel("bin/break-even-ohm-usd-values.xlsx")
 
 # -------------------------------------------------------
 # Plot.
@@ -164,8 +246,78 @@ with PdfPages("bin/plots.pdf") as pdf:
     plt.ylabel("Ohm supply [millions]")
     plt.tight_layout()
     pdf.savefig()
+    img.savefig()
+    plt.close()
+
+    # plot estimated rebase rates:
+    plt.figure()
+    plt.title("Simulated Ohm rebase rates")
+    plt.plot(
+        results_max_oip18.index,
+        results_max_oip18.rebase_rate*100.0,
+        label="OIP-18 best-case",
+        color="gray",
+        linestyle="--",
+        )
+    plt.scatter(
+        results_oip18.index,
+        results_oip18.rebase_rate*100.0,
+        label="OIP-18 with uniform distr.",
+        color="black",
+        alpha=0.5,
+        s=10,
+        )
+    plt.plot(
+        results_min_oip18.index,
+        results_min_oip18.rebase_rate*100.0,
+        label="OIP-18 worst-case",
+        color="black",
+        linestyle="--"
+        )
+    plt.legend()
+    plt.grid()
+    plt.xlabel("date")
+    plt.ylabel("Rebase compound rate [%]")
+    rebase_per_2weeks = int(14*3)
+    plt.xticks(results_oip18.index[::rebase_per_2weeks],rotation=45,ha="right")
+    plt.tight_layout()
+    pdf.savefig()
+    img.savefig()
     plt.close()
     
+    # plot estimated Ohm accumulation:
+    plt.figure()
+    plt.title("Simulated Ohm accumulation")
+    plt.plot(
+        results_max_oip18.index,
+        results_max_oip18.ohms,
+        label="OIP-18 best-case",
+        color="gray",
+        linestyle="--",
+        )
+    plt.plot(
+        results_oip18.index,
+        results_oip18.ohms,
+        label="OIP-18 with uniform distr.",
+        color="black",
+        )
+    plt.plot(
+        results_min_oip18.index,
+        results_min_oip18.ohms,
+        label="OIP-18 worst-case",
+        color="black",
+        linestyle="--"
+        )
+    plt.legend()
+    plt.grid()
+    plt.xlabel("date")
+    plt.ylabel("Accrued Ohm tokens")
+    rebase_per_2weeks = int(14*3)
+    plt.xticks(results_oip18.index[::rebase_per_2weeks],rotation=45,ha="right")
+    plt.tight_layout()
+    pdf.savefig()
+    img.savefig()
+    plt.close()
     
     
     
