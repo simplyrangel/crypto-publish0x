@@ -1,3 +1,19 @@
+"""Estimate the 1-Ohm minimum value necessary to break even if a user
+purchases 1-Ohm today (2022-01-02) at about $350.0 USD and cashes out 
+at the start of next year (2023-01-02). 
+
+The accrued Ohm from 2021-01-02 to 2023-01-02 was simulated with eight-hour
+rebase compound interest events every day during the time range. Potential 
+rebase compound interest rates were taken from the OlympusDAO OIP-18 document:
+
+https://forum.olympusdao.finance/d/77-oip-18-reward-rate-framework-and-reduction
+
+The potential rebase rate range will change when the total Ohm supply 
+exceeds 10 million. The date when the total Ohm supply exceeds 10 million
+was estimated by extrapolating a near-linear Ohm supply growth based on the
+last few months of total Ohm token supply. 
+
+"""
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
