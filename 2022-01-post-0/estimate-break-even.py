@@ -201,7 +201,13 @@ breakeven_df = pd.DataFrame(
         "uniform r distr. break-even point",
         "worst-case break-even point",
         ]
-    ).round(3)
+    )
+breakeven_df["Ohms"] = [
+    results_max_oip18.iloc[-1].ohms,
+    results_oip18.iloc[-1].ohms,
+    results_min_oip18.iloc[-1].ohms,
+    ]
+breakeven_df = breakeven_df.round(3)
 breakeven_df.to_excel("bin/break-even-ohm-usd-values.xlsx")
 
 # -------------------------------------------------------
