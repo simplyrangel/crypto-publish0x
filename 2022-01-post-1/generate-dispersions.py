@@ -124,9 +124,9 @@ results.to_csv("bin/rebase-rate-estimates.csv")
 # Plot.
 # -------------------------------------------------------
 img = imghelper(
-    save_dir = "bin",
-    img_series= "rebase-rates",
-    save_flag = False,    
+    save_dir="bin",
+    img_series="rebase-rates",
+    save_flag=True,    
     )
 with PdfPages("bin/plots.pdf") as pdf:
 
