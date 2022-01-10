@@ -14,4 +14,4 @@ Scripts in this directory support ["OlympusDAO: the key to your Ohm profits star
 
 **Analysis steps:**
 1. Run `generate-dispersions.py` to generate and plot rebase rewards rate dispersions based on OIP-63. The dispersions are saved to `bin/rebase-rate-estimates.csv`. 
-2. Run `ohm-accrual.py` to model the Ohm accrued throughout 2022, and calculate the break even price at every rebase event based on a 1-Ohm purchased 2022-01-09. 
+2. Run `ohm-accrual.py` to model the Ohm accrued throughout 2022 using `bin/rebase-rate-estimates.csv`. The break-even price at each rebase event is calculated based on a 1-Ohm purchased 2022-01-09. 
