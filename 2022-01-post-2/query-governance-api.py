@@ -8,10 +8,14 @@ from subprocess import Popen, PIPE
 # Local functions.
 # -----------------------------------------------------
 # function to query the API via curl:
-def governance_api_query(offset,verbose=True):
+def governance_api_query(
+    governance_period, #integer
+    offset, #integer
+    verbose=True,
+    ):
     url = [
         "https://governance.algorand.foundation/api",
-        "periods/governance-period-2/governors",
+        "periods/governance-period-%d/governors"%governance_period,
         "?ordering=-registration_datetime&limit=100&offset=%d"%offset,
         ]
     url = "/".join(url)
@@ -32,48 +36,72 @@ def governance_api_query(offset,verbose=True):
 # function to extract governance data we care about from the
 # 'results' object returned by the API:
 def extract_governor_data(
-    query_results,
+    results_item,
     data_list,
     ):
-    address = query_results["account"]["address"]
-    committed_algos = query_results["committed_algo_amount"]
-    eligible_flag = query_results["is_eligible"]
-    registration_datetime = query_results["registration_datetime"]
+    address = results_item["account"]["address"]
+    committed_algos = results_item["committed_algo_amount"]
+    eligible_flag = results_item["is_eligible"]
+    registration_datetime = results_item["registration_datetime"]
     data_list.append([
-        address,
-        registration_datetime,
-        committed_algos,
-        eligible_flag,
+        address, #wallet public address
+        registration_datetime, #datetime Zulu (UTC)
+        committed_algos, #micro-algos
+        eligible_flag, #governance eligibility 
         ])
 
 # -----------------------------------------------------
 # Query API.
 # -----------------------------------------------------
-max_number_of_pages = 700
-current_page = 0
-data_list = []
-while current_page < max_number_of_pages:
-    results = governance_api_query(current_page*100)
-    [extract_governor_data(x,data_list) for x in results]
-    if len(results) < 100:
-        print("final page: %d"%current_page)
-        break
-    else:
-        current_page += 1
+# define an upper bound for the number of API
+# calls so that we don't run forever:
+max_number_of_pages = 800
 
-# -----------------------------------------------------
-# Save data.
-# -----------------------------------------------------
-# convert to pandas dataframe:
-df = pd.DataFrame(
-    data_list,
-    columns=["address","registration","committed_algos","eligible"],
-    )
+# itervate over each governance period: 
+for governance_period in [1,2]:
+    current_page = 0
+    data_list = []
+    
+    # query each page until all results are returned,
+    # or we reach the max number of pages specified
+    # by the user:
+    while current_page < max_number_of_pages:
+        results = governance_api_query(
+            governance_period,
+            current_page*100,
+            )
+        
+        # list concatenation provides better efficiency:
+        [extract_governor_data(x,data_list) for x in results]
+        
+        # break if no more pages:
+        if len(results) < 100:
+            print("final page: %d"%current_page)
+            break
+        else:
+            current_page += 1
 
-# format data where applicable and save:
-df.loc[:,"committed_algos"] = df.committed_algos.apply(float)/10e6
-df.loc[:,"registration"] = pd.to_datetime(df.registration)
-df.to_hdf("bin/algorand-governance-period-2.hdf","w",mode="w")
+    # convert to pandas dataframe:
+    df = pd.DataFrame(
+        data_list,
+        columns=[
+            "address",
+            "registration",
+            "committed_algos",
+            "eligible",
+            ],
+        )
+
+    # format data where applicable and save.
+    # the api returns algos as 'microalgos'; divide 
+    # by 1e6 to get the number of actual algos:
+    df.loc[:,"committed_algos"] = df.committed_algos.apply(float)/10e6
+    df.loc[:,"registration"] = pd.to_datetime(df.registration)
+    output_fi = "bin/%s-algorand-governance-period-%d.hdf"%(
+        datetime.today().strftime("%Y-%m-%d"),
+        governance_period,
+        )
+    df.to_hdf(output_fi,"w",mode="w")
 
 
 
