@@ -95,7 +95,7 @@ for governance_period in [1,2]:
     # format data where applicable and save.
     # the api returns algos as 'microalgos'; divide 
     # by 1e6 to get the number of actual algos:
-    df.loc[:,"committed_algos"] = df.committed_algos.apply(float)/10e6
+    df.loc[:,"committed_algos"] = df.committed_algos.apply(float)/1e6
     df.loc[:,"registration"] = pd.to_datetime(df.registration)
     output_fi = "bin/%s-algorand-governance-period-%d.hdf"%(
         datetime.today().strftime("%Y-%m-%d"),
