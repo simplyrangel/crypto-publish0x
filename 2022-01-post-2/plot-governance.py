@@ -67,7 +67,9 @@ with pd.ExcelWriter("bin/governance.xlsx") as writer:
         frames = []
         eligible_gov = gov[gov.eligible==True]
         for df in [gov, eligible_gov]:
-            frames.append(df.describe())
+            f = df.describe()
+            f["sum"] = df.committed_algos.sum()
+            frames.append(f)
         
         # save data per period to different sheets
         # of the same excel file:
@@ -81,7 +83,9 @@ with pd.ExcelWriter("bin/governance.xlsx") as writer:
         gov_lt1 = gov[gov.committed_algos>1.0]
         eligible_gov = gov_lt1[gov_lt1.eligible==True]
         for df in [gov_lt1, eligible_gov]:
-            frames.append(df.describe())
+            f = df.describe()
+            f["sum"] = df.committed_algos.sum()
+            frames.append(f)
         results = pd.concat(frames,keys=["all","only eligible"])
         results.to_excel(writer,sheet_name="period %d summary gt 1Algo"%(period_id+1))
 
@@ -98,6 +102,8 @@ img = imghelper(
 # Gov. accounts and committed value.
 # -----------------------------------------------------
 fig,ax = plt.subplots()
+plt.title("""Algorand Governance period 1 vs 2
+total committed algos vs number of governors""")
 
 # governance period 1 (all accounts):
 plt.scatter(
@@ -138,6 +144,7 @@ plt.scatter(
     )
 
 # finish plot:
+add_markings(ax)
 plt.legend(fontsize=12)
 plt.grid()
 plt.xlabel("number of governors")
@@ -153,6 +160,8 @@ plt.close()
 gov1_below1algo = gov1[gov1.committed_algos <= 1.0]
 gov2_below1algo = gov2[gov2.committed_algos <= 1.0]
 fig, ax = plt.subplots()
+plt.title("""Algorand Governance period 1 vs 2
+governors with less than 1 Algo commitments""")
 plt.hist(
     gov1_below1algo.committed_algos,
     bins=20,    
@@ -170,6 +179,7 @@ plt.hist(
     label="Gov. period 2 accounts\nwith 1Algo or less committed: %d"%(
         len(gov2_below1algo.committed_algos)),
     )
+add_markings(ax)
 plt.legend(fontsize=12)
 img.savefig()
 plt.close()
@@ -179,6 +189,8 @@ plt.close()
 # percentage of total committed algo.
 # -----------------------------------------------------
 fig, ax = plt.subplots()
+plt.title("""Algorand Governance period 1 vs 2
+governor's commitments relative to the all committed Algos""")
 plt.scatter(
     gov1.committed_algos/1e6,
     gov1.committed_ratio,
@@ -204,12 +216,11 @@ plt.scatter(
     s=200,
     label="Gov. period 2 (all accounts)",
     )
-plt.legend(fontsize=12,loc="lower right")
+plt.legend(fontsize=12,loc="upper left")
 plt.grid()
 plt.xlabel("committed algos per governor [millions]")
 plt.ylabel("committed algos per gov. / all committed algos")
-#plt.xlim([0,40])
-#plt.ylim([0,0.1])
+add_markings(ax)
 img.savefig()
 plt.close()
 
@@ -218,6 +229,8 @@ plt.close()
 # percentage of total committed algo.
 # -----------------------------------------------------
 fig, ax = plt.subplots()
+plt.title("""Algorand Governance period 1 vs 2
+governor's commitments relative to the all committed Algos""")
 plt.scatter(
     gov1.committed_algos/1e6,
     gov1.committed_ratio,
@@ -243,7 +256,8 @@ plt.scatter(
     s=200,
     label="Gov. period 2 (all accounts)",
     )
-plt.legend(fontsize=12,loc="lower right")
+add_markings(ax)
+plt.legend(fontsize=12,loc="upper left")
 plt.grid()
 plt.xlabel("committed algos per governor [millions]")
 plt.ylabel("committed algos per gov. / all committed algos")
