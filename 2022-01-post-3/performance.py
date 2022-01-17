@@ -19,6 +19,7 @@ idx = pd.IndexSlice
 # -----------------------------------------------------
 # Read data and extract information.
 # -----------------------------------------------------
+# Large Cap Portfolio data:
 lcc = pd.read_excel(
     "bin/lcc-portfolio-performance.xlsx",
     index_col=[0],
@@ -29,6 +30,13 @@ lcc = pd.read_excel(
 current_value = lcc.coin_usd_value.iloc[-1]
 current_deposit_sum = lcc.deposits_usd.iloc[-1]
 current_return = current_value / current_deposit_sum
+
+# BTC DCA baseline portfolio:
+btc_baseline = pd.read_excel(
+    "bin/2022-01-16-btc-dca-baseline-portfolio.xlsx",
+    index_col=[0],
+    parse_dates=True,    
+    )
 
 # read active coins:
 lcc_coins = pd.read_csv(
@@ -337,21 +345,28 @@ pdf.savefig()
 plt.close()
 
 # -----------------------------------------------------
-# Plot BTC and ETH.
+# Plot LCC BTC and baseline BTC performances.
 # -----------------------------------------------------
 # plot:
 fig,ax = plt.subplots()
 plt.title("""Large Cap Coin (LCC) Portfolio
-Bitcoin (BTC) and Ethereum (ETH) performances""")
-for coin in ["btc","eth"]:
+Bitcoin (BTC) actual and baseline DCA performances""")
+for coin in ["btc"]:
     df = allcoin_data.loc[idx[coin,:],].reset_index()
     plt.plot(
         df.date,
         df.performance,
         color=benchmark_colorwheel[coin],
-        label="%s (%.2fx return)"%(coin.upper(),coin_metrics.loc[coin,"performance"]),
+        label="%s actual (%.2fx return)"%(coin.upper(),coin_metrics.loc[coin,"performance"]),
         zorder=10,
         )
+plt.plot(
+    btc_baseline.index,
+    btc_baseline.performance,
+    color="black",
+    label="BTC baseline (%.2fx return)"%(btc_baseline.performance.iloc[-1]),
+    zorder=1,
+    )
 plt.plot(
     lcc.index,
     lcc.performance,
