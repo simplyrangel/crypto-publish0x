@@ -55,7 +55,7 @@ pdf = PdfPages("bin/lcc-plots.pdf")
 img = imghelper(
     save_dir="bin",
     img_series="lcc",
-    save_flag=False,    
+    save_flag=True,    
     )
 
 # local functions:
