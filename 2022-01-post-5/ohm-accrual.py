@@ -72,6 +72,9 @@ baseline_results = ohm_accrual_sim(
     current_price,
     )
 
+# save data:
+personal_results.to_hdf("ohm-accrual-sim.hdf","w",mode="w")
+
 # extract dates when I'll reach break even:
 mydates = personal_results.reset_index(level=1)
 mydates = mydates[mydates.break_even_usd<=current_price]
