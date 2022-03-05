@@ -1,0 +1,58 @@
+% Statera quick look report tables. 
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{longtable}
+
+% increase table vertical line spacing:
+\def\arraystretch{1.5}%
+
+% begin doc:
+\begin{document}
+
+% price action:
+\begin{longtable}[c]{ l l }
+\caption{Statera high level price information. Data visually extracted from CoinGecko 2022-02-18:19:22:00 UTC.} \\
+\hline
+\textbf{Parameter} & \textbf{Description} \\
+\hline
+Token & Statera \\
+Public appearance & May 24, 2020 \\
+Market cap & \$7.07 million \\
+Market cap rank & 1312 \\
+Current price & \$0.089 \\
+All time high & \$0.466 \\
+All time low & \$0.00000154 \\
+\hline
+\end{longtable}
+
+% tokenomics:
+\begin{longtable}[c]{ l l }
+\caption{Statera tokenomics at-a-glance. Data visually extracted from stateratoken.com 2022-02-18:19:22:00 UTC.} \\
+\hline
+\textbf{Paramter} & \textbf{Description} \\
+\hline
+Initial token supply & 101 million \\
+Current token supply & 79.19 million \\
+Available networks & Ethereum; Fantom \\
+Burn mechanisms & Contract burns 1 percent of every transaction. \\
+Token mints & No future mints described in official documentation. \\
+Token distribution & Unknown \\
+\hline
+\end{longtable}
+
+% social media
+\begin{longtable}[c]{ p{0.1\textwidth} p{0.15\textwidth} p{0.1\textwidth} p{0.35\textwidth} }
+\caption{Statera social media presence as of 2022-02-17.} \\
+\hline
+\textbf{Platform} & \textbf{Account} & \textbf{Followers} & \textbf{Notes} \\
+\hline
+Telegram & stateratoken & 2,194 & Quick lookover shows activity. Beware! Plenty of scam Telegram accounts with similar names though. \\
+Twitter & @StateraProject & 8,863 & \\
+Medium & Statera Project & 206 & Does not appear active. Last posted Nov. 14, 2021. \\
+GitHub & StateraProject & 5 & Little to no activity. No public code contributions in 2022, two public contributions in 2021, and 17 contributions in 2020. \\
+YouTube & Statera Project & 31 & Only one video -- "Introducing the Statera Project" -- published Sept. 24, 2021. \\
+\hline
+\end{longtable}
+
+% end doc:
+\end{document}
